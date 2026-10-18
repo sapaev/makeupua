@@ -4,7 +4,6 @@ import{expect, Locator} from "@playwright/test"
 
 export  class CategoriesPage extends BasePage{
 
-
     private readonly titleOfCategory:Locator=this.page.locator(".CategoryPage__title  h1")
     private readonly sideMenu:Locator=this.page.locator(".Filters__filters ");
     private readonly priceInput:Locator=this.page.locator(".PriceSelector__field input");
@@ -13,18 +12,13 @@ export  class CategoriesPage extends BasePage{
 
     private readonly actualPriceOfItem:Locator=this.page.locator(".Products__cards > .ProductCard__cardContainer .Price__priceCurrent")
     private readonly paginationButton:Locator=this.page.locator(".Pagination__pages li")
-     private readonly sortingMenuOptionsMobile:Locator=this.page.locator("#SortingList .SortingListContent__options ")
+    private readonly sortingMenuOptionsMobile:Locator=this.page.locator("#SortingList .SortingListContent__options ")
+    
+    private readonly filterButtonOnMobile:Locator=this.page.locator(".CategoryPage__sorting  .FilterSortingControls__button")
+    private readonly sortingItemsButtonOnMobile:Locator=this.page.locator(".CategoryPage__sorting  .FilterSortingControls__button")
+    private readonly applyFilterButton:Locator=this.page.locator(".Button__primary ").filter({has:this.page.locator("span", {hasText:"Застосувати"})})
     
 
-
-
-   private readonly filterButtonOnMobile:Locator=this.page.locator(".CategoryPage__sorting  .FilterSortingControls__button")
-   private readonly sortingItemsButtonOnMobile:Locator=this.page.locator(".CategoryPage__sorting  .FilterSortingControls__button")
-   private readonly applyFilterButton:Locator=this.page.locator(".Button__primary ").filter({has:this.page.locator("span", {hasText:"Застосувати"})})
-    
-
-    
-    
     async checkTitleOfCategory(titleName:string){
        await expect(this.titleOfCategory).toHaveText(titleName);
     }
@@ -39,15 +33,12 @@ export  class CategoriesPage extends BasePage{
     }
 
 
-     
-
-    async typeMinAndMaxPriceInInput(minPrice?: string, maxPrice?: string){
+async typeMinAndMaxPriceInInput(minPrice?: string, maxPrice?: string){
 
     const minPriceInput: Locator = this.priceInput.first();
     const maxPriceInput: Locator = this.priceInput.last();
 
-
-     const filteredProductsLoaded = this.page.waitForResponse(response =>
+    const filteredProductsLoaded = this.page.waitForResponse(response =>
         response.url().includes("/products/?") &&
         (minPrice === undefined || response.url().includes(`priceFrom=${minPrice}`)) &&
         (maxPrice === undefined || response.url().includes(`priceTo=${maxPrice}`))
@@ -71,7 +62,6 @@ export  class CategoriesPage extends BasePage{
         }
     }).toPass({ timeout: 10000 });
 
-
     await filteredProductsLoaded;
 
     if(this.isMobile){
@@ -79,7 +69,6 @@ export  class CategoriesPage extends BasePage{
         await expect(this.sideMenu).toBeHidden();
     }
 }
-
 
 
     async clickOnSortingButton(){
@@ -90,83 +79,65 @@ export  class CategoriesPage extends BasePage{
         } else{
             await this.sortingItemsButton.click();
             await expect(this.sortingMenuOptions).toBeVisible();
-        }
-        
-
-        
-    }
-
-    async selectFromTheCheapestSorting(){
-     if(this.isMobile){
-        let typeOfSorting:Locator=this.sortingMenuOptionsMobile.locator("button").nth(2);
-       await expect(typeOfSorting).toHaveText("Від найдешевших", { ignoreCase: true });
-       await typeOfSorting.click();
-
-       await expect(async () => {
-          const priceStrings = await this.actualPriceOfItem.allTextContents();
-          const actualPrices: number[] = priceStrings.map(str => {
-              const cleaned = str.replace(/[^\d.,]/g, '').replace(',', '.');
-              return parseFloat(cleaned);
-          });
-          const expectedPrices = actualPrices.slice().sort((a, b) => a - b);
-          expect(actualPrices).toEqual(expectedPrices);
-        }).toPass({ timeout: 10000 });
-     } else {
-       let typeOfSorting:Locator=this.sortingMenuOptions.locator("button").nth(2);
-       await expect(typeOfSorting).toHaveText("Від найдешевших", { ignoreCase: true });
-       await typeOfSorting.click();
-
-       await expect(async () => {
-          const priceStrings = await this.actualPriceOfItem.allTextContents();
-          const actualPrices: number[] = priceStrings.map(str => {
-              const cleaned = str.replace(/[^\d.,]/g, '').replace(',', '.');
-              return parseFloat(cleaned);
-          });
-          const expectedPrices = actualPrices.slice().sort((a, b) => a - b);
-          expect(actualPrices).toEqual(expectedPrices);
-        }).toPass({ timeout: 10000 });
-     }
-
-
-       
+        }          
     }
 
 
+     async selectFromTheCheapestSorting(){
+        const options = this.isMobile ? this.sortingMenuOptionsMobile : this.sortingMenuOptions;
+        const typeOfSorting: Locator = options.locator("button").nth(2);
+        await expect(typeOfSorting).toHaveText("Від найдешевших", { ignoreCase: true });
+        await typeOfSorting.click();
 
-
-
-
-
-    async checkMinPriceOfItem(minPrice:number){
         await expect(async () => {
-          const priceStrings = await this.actualPriceOfItem.allTextContents();
-          const actualPrices: number[] = priceStrings.map(str => {
-              const cleaned = str.replace(/[^\d.,]/g, '').replace(',', '.');
-              return parseFloat(cleaned);
-          });
-          expect(actualPrices.every((price)=> price >= minPrice)).toBe(true);
+            const prices = await this.getPrices();
+            const expectedPrices = prices.slice().sort((a, b) => a - b);
+            expect(prices).toEqual(expectedPrices);
         }).toPass({ timeout: 10000 });
     }
 
-    async checkMaxPriceOfItem(maxPrice:number){
+
+    private async getPrices(): Promise<number[]> {
+      const priceStrings = await this.actualPriceOfItem.allTextContents();
+      expect(priceStrings.length, "На странице нет товаров").toBeGreaterThan(0);
+      return priceStrings.map(str => parseFloat(str.replace(/[^\d.,]/g, '').replace(',', '.')));
+    }
+
+    async getPriceRangeFromPage(): Promise<{ min: number, max: number }> {
+        await expect(this.actualPriceOfItem.first()).toBeVisible();
+        const prices = (await this.getPrices()).sort((a, b) => a - b);
+        return {
+            min: Math.floor(prices[Math.floor(prices.length * 0.25)]),
+            max: Math.ceil(prices[Math.floor(prices.length * 0.75)]),
+        };
+    }
+
+
+    async checkMinPriceOfItem(minPrice: number){
         await expect(async () => {
-         const priceStrings = await this.actualPriceOfItem.allTextContents();
-
-         const actualPrices: number[] = priceStrings.map(str => {
-              const cleaned = str.replace(/[^\d.,]/g, '').replace(',', '.');
-              return parseFloat(cleaned);
-          });
-
-          expect(actualPrices.every((price)=> price <= maxPrice)).toBe(true);
-        }).toPass({ timeout: 10000 });
+        const prices = await this.getPrices();
+        expect(prices.every((price) => price >= minPrice)).toBe(true);
+       }).toPass({ timeout: 10000 });
     }
 
 
-
-    async clickOnLastPaginationButton(){
-        let lastPaginationButton:Locator=this.paginationButton.last();
-        await lastPaginationButton.click();
+    async checkMaxPriceOfItem(maxPrice: number){
+        await expect(async () => {
+        const prices = await this.getPrices();
+        expect(prices.every((price)=> price <= maxPrice)).toBe(true);
+       }).toPass({ timeout: 10000 });
     }
+
+
+    async clickOnLastPaginationButton(): Promise<boolean> {
+        if (await this.paginationButton.count() < 2) return false;
+
+        const productsLoaded = this.page.waitForResponse(r => r.url().includes("/products/?"));
+        await this.paginationButton.last().click();
+        await productsLoaded;
+        return true;
+    }
+
 
 
 

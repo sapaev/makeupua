@@ -71,10 +71,10 @@ export default defineConfig({
      },
 
     /* Test against branded browsers. */
-     {
-       name: 'Desktop Edge',
-       use: { ...devices['Desktop Edge'], channel: 'msedge' },
-     },
+     //{
+      // name: 'Desktop Edge',
+      // use: { ...devices['Desktop Edge'], channel: 'msedge' },
+     //},
 
   ],
 

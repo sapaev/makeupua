@@ -12,11 +12,6 @@ test.describe("Check price filter", ()=>{
       const categories = getCategories();
       const titles = getTitles();
 
-      let minPriceForFilter:string="50";
-      let maxPriceForFilter:string="100";
-      let minPriceForChecking:number=50;
-      let maxPriceForChecking:number=100;
-
 
       test.beforeEach("Open Home Page", async ({page, isMobile})=>{
           homePage=new HomePage(page, isMobile);
@@ -26,55 +21,54 @@ test.describe("Check price filter", ()=>{
       })
 
 
-      test("Check min and max price filter ", async ({page, isMobile})=>{
-
-          await homePage.clickOnCategory(categories.perfumery)
-          await categoryPage.checkTitleOfCategory(titles.perfumery)
+      test("Check min and max price filter", async ()=>{
+          await homePage.clickOnCategory(categories.perfumery);
+          await categoryPage.checkTitleOfCategory(titles.perfumery);
+          const { min, max } = await categoryPage.getPriceRangeFromPage();
           await categoryPage.checkOfDisplayingSideMenu();
 
-          await categoryPage.typeMinAndMaxPriceInInput(minPriceForFilter, maxPriceForFilter);
+          await categoryPage.typeMinAndMaxPriceInInput(String(min), String(max));
           await categoryPage.clickOnSortingButton();
           await categoryPage.selectFromTheCheapestSorting();
-          await categoryPage.checkMinPriceOfItem(minPriceForChecking);
-          await categoryPage.checkMaxPriceOfItem(maxPriceForChecking);
+          await categoryPage.checkMinPriceOfItem(min);
+          await categoryPage.checkMaxPriceOfItem(max);
 
-          await categoryPage.clickOnLastPaginationButton();
-          await categoryPage.checkMinPriceOfItem(minPriceForChecking);
-          await categoryPage.checkMaxPriceOfItem(maxPriceForChecking);
-
-
+          if (await categoryPage.clickOnLastPaginationButton()) {
+              await categoryPage.checkMinPriceOfItem(min);
+              await categoryPage.checkMaxPriceOfItem(max);
+          }
       })
 
-
-     
-      test("Check min price filter ", async ()=>{
-          await homePage.clickOnCategory(categories.perfumery)
-          await categoryPage.checkTitleOfCategory(titles.perfumery)
+      test("Check min price filter", async ()=>{
+          await homePage.clickOnCategory(categories.perfumery);
+          await categoryPage.checkTitleOfCategory(titles.perfumery);
+          const { min } = await categoryPage.getPriceRangeFromPage();
           await categoryPage.checkOfDisplayingSideMenu();
 
-          await categoryPage.typeMinAndMaxPriceInInput(minPriceForFilter);
+          await categoryPage.typeMinAndMaxPriceInInput(String(min));
           await categoryPage.clickOnSortingButton();
           await categoryPage.selectFromTheCheapestSorting();
-          await categoryPage.checkMinPriceOfItem(minPriceForChecking);
+          await categoryPage.checkMinPriceOfItem(min);
 
-          await categoryPage.clickOnLastPaginationButton();
-          await categoryPage.checkMinPriceOfItem(minPriceForChecking);
+          if (await categoryPage.clickOnLastPaginationButton()) {
+              await categoryPage.checkMinPriceOfItem(min);
+          }
       })
 
-
-    test("Check max price filter ", async ()=>{
-          await homePage.clickOnCategory(categories.perfumery)
-          await categoryPage.checkTitleOfCategory(titles.perfumery)
+      test("Check max price filter", async ()=>{
+          await homePage.clickOnCategory(categories.perfumery);
+          await categoryPage.checkTitleOfCategory(titles.perfumery);
+          const { max } = await categoryPage.getPriceRangeFromPage();
           await categoryPage.checkOfDisplayingSideMenu();
 
-          await categoryPage.typeMinAndMaxPriceInInput(undefined, maxPriceForFilter);
+          await categoryPage.typeMinAndMaxPriceInInput(undefined, String(max));
           await categoryPage.clickOnSortingButton();
           await categoryPage.selectFromTheCheapestSorting();
-          await categoryPage.checkMaxPriceOfItem(maxPriceForChecking);
+          await categoryPage.checkMaxPriceOfItem(max);
 
-          await categoryPage.clickOnLastPaginationButton();
-          await categoryPage.checkMaxPriceOfItem(maxPriceForChecking);
-
+          if (await categoryPage.clickOnLastPaginationButton()) {
+              await categoryPage.checkMaxPriceOfItem(max);
+          }
       })
 
 

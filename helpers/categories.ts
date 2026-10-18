@@ -3,15 +3,15 @@ export function getCategories(){
      return{
         "perfumery": "Парфумерія",
         "makeup": "Макіяж",
-        "face": "Макіяж",
-        "hair": "Макіяж",
-        "body": "Макіяж",
-        "healthAndCare": "Макіяж",
-        "accessoriesAndAppliances": "Макіяж",
-        "fashion": "Макіяж",
-        "forMen": "Макіяж",
-        "presents": "Макіяж",
-        "brands": "Макіяж",
+        "face": "Обличчя",
+        "hair": "Волосся",
+        "body": "Тіло",
+        "healthAndCare": "Здоров'я і догляд",
+        "accessoriesAndAppliances": "Аксесуари і техніка",
+        "fashion": "Fashion",
+        "forMen": "Чоловікам",
+        "presents": "Подарунки",
+        "brands": "Бренди",
      }
 
     }

@@ -16,8 +16,7 @@ export  class HomePage extends BasePage{
 
  
     
-    
-    
+
     async openHomePage(){
         await this.navigate();
         await this.acceptPrivacyButton.click()
